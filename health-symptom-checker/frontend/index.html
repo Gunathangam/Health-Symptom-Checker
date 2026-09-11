@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agentic AI Health Symptom Checker — Powered by IBM Granite</title>
+  <meta name="description" content="AI-powered health symptom checker using IBM Granite on watsonx.ai. Get probable conditions, urgency levels, home remedies, and doctor advice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-block">
+      <div class="logo-icon">🩺</div>
+      <div class="logo-text">
+        <h1>Agentic AI Health Symptom Checker</h1>
+        <span>Powered by IBM Granite · watsonx.ai</span>
+      </div>
+    </div>
+    <span class="ibm-badge">IBM Cloud · Granite AI</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════ -->
+<main class="main-container">
+
+  <!-- ─── LEFT COLUMN: Input + History ─── -->
+  <div style="display:flex;flex-direction:column;gap:24px;">
+
+    <!-- Input Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">💬</span>
+        <div>
+          <h2>Describe Your Symptoms</h2>
+          <p>Enter symptoms in natural language — any language supported</p>
+        </div>
+      </div>
+      <div class="card-body">
+
+        <!-- Symptom Text -->
+        <div class="form-group">
+          <label for="symptomInput">
+            Your Symptoms <span class="required">*</span>
+          </label>
+          <textarea
+            id="symptomInput"
+            class="symptom-textarea"
+            placeholder="e.g. I have a sore throat, high fever for 2 days, and body aches…"
+            maxlength="500"
+            spellcheck="true"
+            aria-label="Describe your symptoms"
+          ></textarea>
+          <div style="text-align:right;margin-top:4px;">
+            <small id="charCount" style="color:var(--text-muted);font-size:.75rem">0 / 500</small>
+          </div>
+        </div>
+
+        <!-- Quick Tags -->
+        <div class="form-group">
+          <label>Quick Symptoms</label>
+          <div class="quick-symptoms">
+            <span class="symptom-tag" data-symptom="fever and chills">🌡️ Fever</span>
+            <span class="symptom-tag" data-symptom="headache">🤕 Headache</span>
+            <span class="symptom-tag" data-symptom="cough and cold">🤧 Cough & Cold</span>
+            <span class="symptom-tag" data-symptom="sore throat">😮 Sore Throat</span>
+            <span class="symptom-tag" data-symptom="stomach pain and nausea">🤢 Nausea</span>
+            <span class="symptom-tag" data-symptom="chest pain">💔 Chest Pain</span>
+            <span class="symptom-tag" data-symptom="body ache and fatigue">😴 Fatigue</span>
+            <span class="symptom-tag" data-symptom="skin rash and itching">🔴 Rash</span>
+            <span class="symptom-tag" data-symptom="shortness of breath">😮‍💨 Breathlessness</span>
+          </div>
+        </div>
+
+        <!-- Optional Context -->
+        <div class="form-group">
+          <label>Optional Context</label>
+          <div class="form-row">
+            <div>
+              <label for="ageInput" style="font-size:.75rem;margin-bottom:4px;display:block">Age</label>
+              <input type="number" id="ageInput" class="form-input" placeholder="e.g. 32" min="1" max="120" />
+            </div>
+            <div>
+              <label for="genderSelect" style="font-size:.75rem;margin-bottom:4px;display:block">Gender</label>
+              <select id="genderSelect" class="form-select">
+                <option value="">Not specified</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="languageSelect" style="font-size:.75rem;margin-bottom:4px;display:block">Response Language</label>
+              <select id="languageSelect" class="form-select">
+                <option value="">Auto-detect</option>
+                <option value="English">English</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="German">German</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Arabic">Arabic</option>
+                <option value="Chinese">Chinese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Box -->
+        <div class="error-box" id="errorBox" role="alert">
+          <span>⚠️</span>
+          <span id="errorMsg"></span>
+        </div>
+
+        <!-- Analyze Button -->
+        <button class="btn-analyze" id="analyzeBtn" aria-label="Analyze my symptoms">
+          <div class="spinner" id="btnSpinner"></div>
+          <span id="btnText">🔍 Analyze Symptoms</span>
+        </button>
+
+        <p style="text-align:center;font-size:0.73rem;color:var(--text-muted);margin-top:10px">
+          Ctrl + Enter to submit · Results are educational only, not a diagnosis
+        </p>
+
+      </div>
+    </div>
+
+    <!-- History Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">🕑</span>
+        <div>
+          <h2>Recent Searches</h2>
+          <p>Click to reload a previous query</p>
+        </div>
+      </div>
+      <div class="card-body" style="padding:16px 20px;">
+        <div id="historyList" class="history-list hidden"></div>
+        <div id="historyEmpty" class="empty-state">
+          <div class="es-icon">📋</div>
+          <p>No recent searches yet. Your session history will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /LEFT COLUMN -->
+
+
+  <!-- ─── RIGHT COLUMN: Results ─── -->
+  <div>
+
+    <!-- Empty state (before results) -->
+    <div class="card" id="emptyResultsCard">
+      <div class="empty-state" style="padding:60px 30px;">
+        <div class="es-icon">🩺</div>
+        <p style="font-size:.9rem;color:var(--text-secondary)">Your analysis results will appear here after you describe your symptoms and click <strong>Analyze</strong>.</p>
+        <p style="font-size:.78rem;margin-top:8px;">Powered by <strong>IBM Granite</strong> on watsonx.ai</p>
+      </div>
+    </div>
+
+    <!-- Results Panel -->
+    <div id="resultsPanel" class="results-panel" aria-live="polite">
+
+      <!-- Detected language -->
+      <div id="detectedLang" class="hidden" style="font-size:.78rem;color:var(--ibm-blue);font-weight:600;padding:6px 0 0 4px;"></div>
+
+      <!-- Urgency Banner -->
+      <div id="urgencyBanner" class="urgency-banner urgency-unknown">
+        <div class="ub-icon">ℹ️</div>
+        <div>
+          <div class="ub-label">Urgency Level</div>
+          <div class="ub-level">—</div>
+        </div>
+      </div>
+
+      <!-- Possible Conditions -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">🔬</span>
+          <div>
+            <h2>Possible Conditions</h2>
+            <p>Educational overview — not a clinical diagnosis</p>
+          </div>
+        </div>
+        <div class="card-body" style="padding-top:16px;">
+          <div id="conditionsList"></div>
+        </div>
+      </div>
+
+      <!-- Two-column info grid -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+        <div class="info-section">
+          <div class="info-section-header" style="background:#f0fdf4;color:#166534;">
+            <span class="section-icon">🏠</span> Home Remedies
+          </div>
+          <ul id="remediesList" class="info-list"></ul>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-header" style="background:#fff7ed;color:#9a3412;">
+            <span class="section-icon">🏥</span> When to See a Doctor
+          </div>
+          <ul id="doctorList" class="info-list"></ul>
+        </div>
+
+      </div>
+
+      <!-- Prevention Tips -->
+      <div class="info-section">
+        <div class="info-section-header" style="background:#eff6ff;color:#1e40af;">
+          <span class="section-icon">🛡️</span> Preventive Tips
+        </div>
+        <ul id="preventionList" class="info-list"></ul>
+      </div>
+
+      <!-- Sources -->
+      <div class="info-section">
+        <div class="info-section-header" style="background:#f8f8f8;">
+          <span class="section-icon">📚</span> Trusted Sources
+        </div>
+        <div id="sourcesChips" class="sources-chips"></div>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer-box">
+        <strong>⚠️ Disclaimer:</strong>
+        <span id="disclaimerText"> This information is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of a qualified healthcare provider.</span>
+      </div>
+
+    </div><!-- /results panel -->
+
+  </div><!-- /RIGHT COLUMN -->
+
+</main>
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-top">
+    <span>🩺 Agentic AI Health Symptom Checker</span>
+    <span>·</span>
+    <span>Powered by <a href="https://www.ibm.com/watsonx" target="_blank" rel="noopener">IBM Granite on watsonx.ai</a></span>
+    <span>·</span>
+    <a href="https://www.who.int" target="_blank" rel="noopener">WHO Guidelines</a>
+    <span>·</span>
+    <a href="https://www.cdc.gov" target="_blank" rel="noopener">CDC Resources</a>
+  </div>
+  <div>Not a substitute for professional medical advice. Always consult a licensed healthcare provider.</div>
+  <div style="margin-top:6px;color:#6f6f6f;">© 2024 IBM Health AI Project · Built with IBM Cloud Lite &amp; IBM Granite</div>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
