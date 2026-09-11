@@ -1,0 +1,5 @@
+﻿backend/node_modules/
+backend/.env
+backend/server.log
+backend/server.err
+*.log
